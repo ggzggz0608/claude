@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 AI 创业工作室 · Pokemon Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: #1a0a2e;
+  color: white;
+  font-family: 'Press Start 2P', monospace;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+/* ── HEADER ── */
+#header {
+  background: linear-gradient(90deg, #2d1b69 0%, #11998e 100%);
+  border-bottom: 4px solid #FFD700;
+  padding: 8px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  z-index: 100;
+}
+#header h1 { font-size: 11px; color: #FFD700; text-shadow: 2px 2px 0 #7B3810; }
+#status-bar { font-size: 8px; color: #90EE90; display: flex; gap: 20px; align-items: center; }
+#clock { color: #87CEEB; }
+
+/* ── OFFICE ── */
+#office-wrapper { flex: 1; position: relative; overflow: hidden; }
+
+#office {
+  width: 100%; height: 100%;
+  position: relative;
+  background-color: #7a6545;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.07) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,0.02) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 2px, transparent 2px);
+  background-size: 48px 48px, 48px 48px, 96px 96px, 96px 96px;
+}
+
+/* ── ROOMS ── */
+.room {
+  position: absolute;
+  border: 3px solid;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.25);
+}
+.room-label {
+  font-size: 6.5px;
+  text-align: center;
+  padding: 4px 6px;
+  border-bottom: 2px solid;
+  letter-spacing: 0.5px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 3px 3px 0 0;
+}
+
+/* Meeting Room */
+#meeting-room {
+  left: 28%; top: 2%; width: 30%; height: 44%;
+  border-color: #6495ED;
+}
+#meeting-room .room-label { color: #87CEEB; border-color: #6495ED; }
+
+/* Meeting table */
+#mtable {
+  position: absolute;
+  left: 12%; top: 22%; width: 76%; height: 52%;
+  background: linear-gradient(135deg, #6B3A2A, #8B4513);
+  border: 3px solid #4A2010;
+  border-radius: 10px;
+  box-shadow: 0 6px 0 #3D1C00, 0 8px 16px rgba(0,0,0,0.5);
+}
+#mtable::after {
+  content: '';
+  position: absolute;
+  top: 8px; left: 8px; right: 8px; bottom: 8px;
+  border: 1px solid rgba(255,200,100,0.15);
+  border-radius: 6px;
+}
+
+/* CEO Office */
+#ceo-office {
+  left: 71%; top: 2%; width: 27%; height: 50%;
+  border-color: #FFD700;
+}
+#ceo-office .room-label { color: #FFD700; border-color: #FFD700; }
+
+/* CEO desk */
+#ceo-desk {
+  position: absolute;
+  left: 50%; top: 32%; transform: translateX(-50%);
+  width: 70px; height: 52px;
+  background: linear-gradient(135deg, #8B7536, #A08840);
+  border: 2px solid #6B5820;
+  border-radius: 4px;
+  box-shadow: 0 5px 0 #4A3800, 0 7px 10px rgba(0,0,0,0.4);
+}
+#ceo-desk::before { content:'🖥️'; font-size:16px; position:absolute; top:4px; left:50%; transform:translateX(-50%); }
+
+/* Employee desks */
+.desk {
+  position: absolute;
+  width: 64px; height: 50px;
+  background: linear-gradient(135deg, #8B5E3C, #A06840);
+  border: 2px solid #6B3E20;
+  border-radius: 4px;
+  box-shadow: 0 5px 0 #4A2A00, 0 7px 8px rgba(0,0,0,0.35);
+}
+.desk::before { content:'💻'; font-size:14px; position:absolute; top:5px; left:50%; transform:translateX(-50%); }
+
+/* ── POKEMON CHARACTERS ── */
+.poke {
+  position: absolute;
+  display: flex; flex-direction: column; align-items: center;
+  z-index: 20;
+  cursor: pointer;
+  transition: left 1.3s cubic-bezier(.25,.46,.45,.94), top 1.3s cubic-bezier(.25,.46,.45,.94);
+}
+.poke:hover .sprite { filter: brightness(1.3) drop-shadow(0 0 8px white); }
+
+.sprite-wrap {
+  position: relative;
+  width: 72px; height: 72px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.sprite {
+  width: 72px; height: 72px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(2px 5px 4px rgba(0,0,0,0.6));
+  animation: idle 2.2s ease-in-out infinite;
+}
+
+.shadow-ring {
+  position: absolute;
+  bottom: -2px; left: 50%;
+  transform: translateX(-50%);
+  width: 38px; height: 10px;
+  background: rgba(0,0,0,0.35);
+  border-radius: 50%;
+  filter: blur(3px);
+}
+
+.badge {
+  background: rgba(0,0,0,0.78);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 4px;
+  padding: 3px 7px;
+  text-align: center;
+  margin-top: 2px;
+  backdrop-filter: blur(6px);
+  min-width: 88px;
+}
+.badge .pname { font-size: 5.5px; color: #FFD700; display: block; margin-bottom: 2px; }
+.badge .prole { font-size: 5px; color: #90EE90; display: block; }
+
+/* Speech bubble */
+.bubble {
+  position: absolute;
+  top: -42px; left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  color: #222;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; font-weight: 600;
+  padding: 5px 9px;
+  border-radius: 8px;
+  border: 2px solid #333;
+  white-space: nowrap;
+  z-index: 30;
+  pointer-events: none;
+  animation: pop 0.2s ease-out;
+}
+.bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -8px; left: 50%; transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #333;
+  border-bottom: none;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes idle {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+@keyframes run {
+  0%,100% { transform: translateY(0) scaleX(1); }
+  30%     { transform: translateY(-7px) scaleX(.94); }
+  70%     { transform: translateY(-7px) scaleX(1.06); }
+}
+@keyframes excited {
+  0%,100% { transform: translateY(0) rotate(0deg) scale(1); }
+  25%     { transform: translateY(-9px) rotate(-6deg) scale(1.05); }
+  75%     { transform: translateY(-9px) rotate(6deg) scale(1.05); }
+}
+@keyframes pop { from { transform: translateX(-50%) scale(.7); opacity:0; } to { transform: translateX(-50%) scale(1); opacity:1; } }
+@keyframes arrive {
+  0%   { transform: scale(.7); opacity:.5; }
+  70%  { transform: scale(1.2); }
+  100% { transform: scale(1); opacity:1; }
+}
+
+.poke.moving  .sprite { animation: run .38s ease-in-out infinite; }
+.poke.active  .sprite { animation: excited .45s ease-in-out infinite; filter: drop-shadow(0 0 10px gold) drop-shadow(2px 5px 4px rgba(0,0,0,.6)); }
+.poke.arrived .sprite { animation: arrive .5s ease-out forwards, idle 2.2s ease-in-out 0.5s infinite; }
+
+/* Meeting room glow */
+#meeting-room.lit {
+  border-color: #87CEEB;
+  background: rgba(100,149,237,.18);
+  box-shadow: 0 0 30px rgba(135,206,235,.45), inset 0 0 20px rgba(100,149,237,.15);
+  animation: mroom 1.8s ease-in-out infinite;
+}
+@keyframes mroom {
+  0%,100% { box-shadow: 0 0 30px rgba(135,206,235,.4); }
+  50%      { box-shadow: 0 0 55px rgba(135,206,235,.75); }
+}
+
+/* ── PLANTS / DECO ── */
+.deco { position: absolute; font-size: 22px; filter: drop-shadow(1px 3px 3px rgba(0,0,0,.4)); pointer-events:none; z-index:5; }
+
+/* ── LOG ── */
+#log {
+  height: 72px; flex-shrink: 0;
+  background: rgba(0,0,0,.75);
+  border-top: 3px solid #222;
+  border-bottom: 3px solid #222;
+  overflow-y: auto;
+  padding: 5px 14px;
+}
+#log::-webkit-scrollbar { width: 4px; }
+#log::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+.log { font-family: 'Inter', sans-serif; font-size: 11px; color: #bbb; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+.log .t { color: #555; margin-right: 8px; }
+.log.sys { color: #90EE90; }
+.log.cmd { color: #FFD700; }
+.log.ceo { color: #FF9500; }
+
+/* ── QUICK BUTTONS ── */
+#quick {
+  display: flex; gap: 7px; padding: 6px 14px; flex-shrink: 0;
+  background: rgba(0,0,0,.55); flex-wrap: wrap; align-items: center;
+}
+.qbtn {
+  background: rgba(255,215,0,.1);
+  border: 1px solid rgba(255,215,0,.3);
+  border-radius: 20px;
+  color: #FFD700; cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; padding: 4px 12px;
+  transition: all .2s;
+}
+.qbtn:hover { background: rgba(255,215,0,.25); border-color: #FFD700; transform: translateY(-1px); }
+
+/* ── COMMAND INPUT ── */
+#cmd-area {
+  background: rgba(0,0,0,.88);
+  border-top: 4px solid #FFD700;
+  padding: 9px 16px;
+  display: flex; gap: 10px; align-items: center;
+  flex-shrink: 0;
+}
+#cmd-label { font-size: 10px; color: #FFD700; flex-shrink: 0; }
+#cmd {
+  flex: 1;
+  background: rgba(255,255,255,.1);
+  border: 2px solid #444; border-radius: 4px;
+  color: white; font-family: 'Inter', sans-serif;
+  font-size: 13px; padding: 8px 12px; outline: none;
+  transition: border-color .2s;
+}
+#cmd:focus { border-color: #FFD700; }
+#cmd::placeholder { color: #555; }
+#sendbtn {
+  background: linear-gradient(135deg, #FFD700, #FF9500);
+  border: none; border-radius: 4px;
+  color: #000; font-family: 'Press Start 2P', monospace;
+  font-size: 8px; padding: 10px 16px;
+  cursor: pointer; transition: all .2s;
+  box-shadow: 0 3px 0 #CC7000;
+}
+#sendbtn:hover { transform: translateY(-1px); box-shadow: 0 4px 0 #CC7000; }
+#sendbtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #CC7000; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <h1>🎮 AI 创业工作室 · POKEMON EDITION</h1>
+  <div id="status-bar">
+    <span id="status">🟢 8位精英待命中</span>
+    <span id="clock">--:--:--</span>
+  </div>
+</div>
+
+<!-- OFFICE -->
+<div id="office-wrapper">
+<div id="office">
+
+  <!-- Decorations -->
+  <div class="deco" style="left:1%;top:48%">🌿</div>
+  <div class="deco" style="left:26%;top:2%">🌱</div>
+  <div class="deco" style="left:69%;top:2%">🌿</div>
+  <div class="deco" style="left:1%;bottom:4%">🌵</div>
+  <div class="deco" style="right:1%;bottom:4%">🌿</div>
+  <div class="deco" style="left:48%;top:2%">☕</div>
+
+  <!-- Meeting Room -->
+  <div id="meeting-room" class="room">
+    <div class="room-label">🏛️ 大会议室</div>
+    <div id="mtable"></div>
+    <!-- chair indicators -->
+    <div style="position:absolute;top:17%;left:14%;width:10%;height:6%;background:rgba(100,149,237,.25);border:1px solid #6495ED;border-radius:3px"></div>
+    <div style="position:absolute;top:17%;left:28%;width:10%;height:6%;background:rgba(100,149,237,.25);border:1px solid #6495ED;border-radius:3px"></div>
+    <div style="position:absolute;top:17%;right:28%;width:10%;height:6%;background:rgba(100,149,237,.25);border:1px solid #6495ED;border-radius:3px"></div>
+    <div style="position:absolute;top:17%;right:14%;width:10%;height:6%;background:rgba(100,149,237,.25);border:1px solid #6495ED;border-radius:3px"></div>
+    <div style="position:absolute;bottom:8%;left:14%;width:10%;height:6%;background:rgba(100,149,237,.25);border:1px solid #6495ED;border-radius:3px"></div>
+    <div style="position:absolute;bottom:8%;left:28%;width:10%;height:6%;background:rgba(100,149,237,.25);border:1px solid #6495ED;border-radius:3px"></div>
+    <div style="position:absolute;bottom:8%;right:28%;width:10%;height:6%;background:rgba(100,149,237,.25);border:1px solid #6495ED;border-radius:3px"></div>
+    <div style="position:absolute;bottom:8%;right:14%;width:10%;height:6%;background:rgba(100,149,237,.25);border:1px solid #6495ED;border-radius:3px"></div>
+  </div>
+
+  <!-- CEO Office -->
+  <div id="ceo-office" class="room">
+    <div class="room-label">👑 CEO 办公室</div>
+    <div id="ceo-desk"></div>
+  </div>
+
+  <!-- Employee Desks -->
+  <div class="desk" style="left:1.5%;top:9%"></div>
+  <div class="desk" style="left:1.5%;top:38%"></div>
+  <div class="desk" style="left:1.5%;top:66%"></div>
+  <div class="desk" style="right:1.5%;top:52%"></div>
+  <div class="desk" style="right:1.5%;top:70%"></div>
+  <div class="desk" style="left:43%;top:66%"></div>
+  <div class="desk" style="left:56%;top:66%"></div>
+
+  <!-- ═══════════════ POKEMON ═══════════════ -->
+
+  <!-- CHARMANDER – CEO -->
+  <div class="poke" id="p-charmander"
+    data-dx="75" data-dy="14"
+    data-mx="55" data-my="24"
+    style="left:75%;top:14%">
+    <div class="sprite-wrap">
+      <img class="sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" alt="">
+      <div class="shadow-ring"></div>
+    </div>
+    <div class="badge"><span class="pname">Charmander</span><span class="prole">👑 CEO</span></div>
+  </div>
+
+  <!-- BULBASAUR – Data Expert -->
+  <div class="poke" id="p-bulbasaur"
+    data-dx="1.5" data-dy="9"
+    data-mx="32" data-my="20"
+    style="left:1.5%;top:9%">
+    <div class="sprite-wrap">
+      <img class="sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" alt="">
+      <div class="shadow-ring"></div>
+    </div>
+    <div class="badge"><span class="pname">Bulbasaur</span><span class="prole">📊 数据专家</span></div>
+  </div>
+
+  <!-- SQUIRTLE – Project Manager -->
+  <div class="poke" id="p-squirtle"
+    data-dx="1.5" data-dy="38"
+    data-mx="32" data-my="32"
+    style="left:1.5%;top:38%">
+    <div class="sprite-wrap">
+      <img class="sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" alt="">
+      <div class="shadow-ring"></div>
+    </div>
+    <div class="badge"><span class="pname">Squirtle</span><span class="prole">🎯 项目操盘手</span></div>
+  </div>
+
+  <!-- CATERPIE – Content Creator -->
+  <div class="poke" id="p-caterpie"
+    data-dx="1.5" data-dy="66"
+    data-mx="34" data-my="40"
+    style="left:1.5%;top:66%">
+    <div class="sprite-wrap">
+      <img class="sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10.png" alt="">
+      <div class="shadow-ring"></div>
+    </div>
+    <div class="badge"><span class="pname">Caterpie</span><span class="prole">✍️ 内容创作</span></div>
+  </div>
+
+  <!-- PIKACHU – Social Media -->
+  <div class="poke" id="p-pikachu"
+    data-dx="86" data-dy="52"
+    data-mx="60" data-my="32"
+    style="left:86%;top:52%">
+    <div class="sprite-wrap">
+      <img class="sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="">
+      <div class="shadow-ring" style="background:rgba(255,230,0,.4)"></div>
+    </div>
+    <div class="badge"><span class="pname">Pikachu</span><span class="prole">📱 社交媒体</span></div>
+  </div>
+
+  <!-- JIGGLYPUFF – Sales -->
+  <div class="poke" id="p-jigglypuff"
+    data-dx="86" data-dy="70"
+    data-mx="60" data-my="40"
+    style="left:86%;top:70%">
+    <div class="sprite-wrap">
+      <img class="sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/39.png" alt="">
+      <div class="shadow-ring" style="background:rgba(255,150,200,.4)"></div>
+    </div>
+    <div class="badge"><span class="pname">Jigglypuff</span><span class="prole">💰 销售高手</span></div>
+  </div>
+
+  <!-- PIDGEY – SEO & Ads -->
+  <div class="poke" id="p-pidgey"
+    data-dx="43" data-dy="66"
+    data-mx="46" data-my="40"
+    style="left:43%;top:66%">
+    <div class="sprite-wrap">
+      <img class="sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/16.png" alt="">
+      <div class="shadow-ring" style="background:rgba(160,220,160,.4)"></div>
+    </div>
+    <div class="badge"><span class="pname">Pidgey</span><span class="prole">🚀 广告&amp;SEO</span></div>
+  </div>
+
+  <!-- PSYDUCK – Translator -->
+  <div class="poke" id="p-psyduck"
+    data-dx="56" data-dy="66"
+    data-mx="52" data-my="40"
+    style="left:56%;top:66%">
+    <div class="sprite-wrap">
+      <img class="sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/54.png" alt="">
+      <div class="shadow-ring" style="background:rgba(200,230,255,.4)"></div>
+    </div>
+    <div class="badge"><span class="pname">Psyduck</span><span class="prole">🌐 翻译员</span></div>
+  </div>
+
+</div><!-- /office -->
+</div><!-- /office-wrapper -->
+
+<!-- LOG -->
+<div id="log">
+  <div class="log sys"><span class="t" id="init-t"></span>🟢 工作室已开启！8位精英 Pokemon 正式就位，随时待命...</div>
+</div>
+
+<!-- QUICK COMMANDS -->
+<div id="quick">
+  <span style="font-size:9px;color:#555;font-family:Inter;flex-shrink:0">快捷指令：</span>
+  <button class="qbtn" onclick="send('召集大家紧急会议')">🚨 紧急会议</button>
+  <button class="qbtn" onclick="send('新项目启动，全员配合')">🚀 新项目</button>
+  <button class="qbtn" onclick="send('我需要数据调研报告')">📊 数据报告</button>
+  <button class="qbtn" onclick="send('帮我创作爆款内容')">✍️ 内容创作</button>
+  <button class="qbtn" onclick="send('优化我们的广告和SEO排名')">🔍 广告SEO</button>
+  <button class="qbtn" onclick="send('运营社交媒体账号')">📱 社媒运营</button>
+  <button class="qbtn" onclick="send('需要翻译成多种语言')">🌐 翻译任务</button>
+  <button class="qbtn" onclick="send('帮我成交更多客户')">💰 销售策略</button>
+</div>
+
+<!-- COMMAND INPUT -->
+<div id="cmd-area">
+  <span id="cmd-label">▶</span>
+  <input id="cmd" type="text" placeholder="输入指令，按 Enter 发送..." onkeydown="if(event.key==='Enter')send()">
+  <button id="sendbtn" onclick="send()">发送</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════
+const POKE = {
+  charmander: {
+    speeches: ['全体注意！🔥','让我们冲！','机会来了，拿下！','CEO 指令下达！'],
+    keys: ['会议','指令','战略','决策','目标','计划','领导']
+  },
+  bulbasaur: {
+    speeches: ['分析数据中...🌱','调研报告出炉！','数据支持这个决策！','发现新趋势！'],
+    keys: ['数据','调研','分析','报告','市场','竞品','统计','研究']
+  },
+  squirtle: {
+    speeches: ['方案已就绪！💧','时间节点确认！','风险可控！','全速推进！'],
+    keys: ['项目','执行','策划','方案','规划','操盘','进度','里程碑']
+  },
+  caterpie: {
+    speeches: ['爆款内容来啦！🐛','创意满满！','流量要起来了！','内容即品牌！'],
+    keys: ['内容','文案','创作','文章','脚本','爆款','标题','视频','小红书','公众号']
+  },
+  pikachu: {
+    speeches: ['Pika Pika！⚡','粉丝暴涨！','互动率飙升！','账号热门了！'],
+    keys: ['社交','运营','账号','粉丝','互动','抖音','小红书','微博','社媒','直播']
+  },
+  jigglypuff: {
+    speeches: ['客户签单了！🎤','成交！','销售额新高！','这个客户拿下了！'],
+    keys: ['销售','成交','客户','转化','推销','订单','业绩','销量','变现']
+  },
+  pidgey: {
+    speeches: ['排名第一！🦅','广告 ROI 3倍！','流量来了！','关键词覆盖全了！'],
+    keys: ['广告','seo','SEO','流量','排名','搜索','投放','关键词','推广','百度','Google']
+  },
+  psyduck: {
+    speeches: ['翻译完成！🌐','多语言搞定！','打破语言壁垒！','国际化进行中！'],
+    keys: ['翻译','语言','英文','中文','日文','韩文','多语','国际','本地化','外语']
+  }
+};
+
+const MEETING_KEYS = ['会议','开会','紧急','全员','集合','召集','大家'];
+const ALL_KEYS     = ['全员','大家','所有人','一起','启动','全力'];
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('init-t').textContent = now();
+  tick();
+  setInterval(tick, 1000);
+});
+
+function tick() {
+  document.getElementById('clock').textContent = now(true);
+}
+function now(full) {
+  const d = new Date();
+  const hm = d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+  return full ? d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'}) : hm;
+}
+
+// ═══════════════════════════════════════════════════
+//  SEND COMMAND
+// ═══════════════════════════════════════════════════
+function send(preset) {
+  const inp = document.getElementById('cmd');
+  const txt = preset || inp.value.trim();
+  if (!txt) return;
+  inp.value = '';
+  addLog(`▶ ${txt}`, 'cmd');
+  parseCmd(txt);
+}
+
+function parseCmd(txt) {
+  const isMeeting = MEETING_KEYS.some(k => txt.includes(k));
+  const isAll     = ALL_KEYS.some(k => txt.includes(k));
+
+  if (isMeeting) { callMeeting(); return; }
+
+  let hits = [];
+  Object.entries(POKE).forEach(([id, p]) => {
+    if (p.keys.some(k => txt.toLowerCase().includes(k.toLowerCase()))) hits.push(id);
+  });
+
+  if (isAll || hits.length === 0) hits = Object.keys(POKE);
+  if (hits.length === 0) hits = ['charmander'];
+
+  hits.forEach((id, i) => setTimeout(() => activatePoke(id), i * 280));
+}
+
+// ═══════════════════════════════════════════════════
+//  MEETING
+// ═══════════════════════════════════════════════════
+function callMeeting() {
+  const room = document.getElementById('meeting-room');
+  bubble('charmander','全体注意！紧急会议！🔥');
+  addLog('📣 CEO 召集全员！所有 Pokemon 飞奔至会议室...','ceo');
+  document.getElementById('status').textContent = '🔴 会议进行中';
+  room.classList.add('lit');
+
+  const ids = Object.keys(POKE);
+  ids.forEach((id, i) => {
+    setTimeout(() => moveTo(id,'meeting'), 400 + i * 200);
+  });
+
+  const arriveAt = 400 + ids.length * 200 + 800;
+  setTimeout(() => {
+    addLog('✅ 全员到齐！会议开始！','sys');
+    ids.forEach(id => {
+      const el = document.getElementById('p-'+id);
+      el.classList.remove('moving');
+      el.classList.add('arrived');
+    });
+    // Random speaker
+    const spkr = ids[Math.floor(Math.random()*ids.length)];
+    setTimeout(() => bubble(spkr, POKE[spkr].speeches[0]), 400);
+  }, arriveAt);
+
+  setTimeout(() => {
+    addLog('📋 会议结束，各位回到工作岗位！','sys');
+    room.classList.remove('lit');
+    document.getElementById('status').textContent = '🟢 8位精英待命中';
+    ids.forEach((id, i) => setTimeout(() => returnDesk(id), i * 150));
+  }, arriveAt + 5500);
+}
+
+// ═══════════════════════════════════════════════════
+//  MOVEMENT
+// ═══════════════════════════════════════════════════
+function moveTo(id, target) {
+  const el = document.getElementById('p-'+id);
+  el.classList.remove('arrived','active');
+  el.classList.add('moving');
+  const mx = el.dataset.mx, my = el.dataset.my;
+  el.style.left = mx + '%';
+  el.style.top  = my + '%';
+}
+
+function returnDesk(id) {
+  const el = document.getElementById('p-'+id);
+  el.classList.remove('moving','arrived','active');
+  el.style.left = el.dataset.dx + '%';
+  el.style.top  = el.dataset.dy + '%';
+}
+
+// ═══════════════════════════════════════════════════
+//  ACTIVATE SINGLE
+// ═══════════════════════════════════════════════════
+function activatePoke(id) {
+  const el = document.getElementById('p-'+id);
+  const p  = POKE[id];
+  el.classList.add('active');
+  const sp = p.speeches[Math.floor(Math.random()*p.speeches.length)];
+  bubble(id, sp);
+  const name = el.querySelector('.pname').textContent;
+  const role = el.querySelector('.prole').textContent;
+  addLog(`⚡ ${name} (${role}) 正在处理任务！`,'cmd');
+  setTimeout(() => el.classList.remove('active'), 3200);
+}
+
+// ═══════════════════════════════════════════════════
+//  BUBBLE
+// ═══════════════════════════════════════════════════
+function bubble(id, text) {
+  const wrap = document.querySelector(`#p-${id} .sprite-wrap`);
+  const old = wrap.querySelector('.bubble');
+  if (old) old.remove();
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  b.textContent = text;
+  wrap.appendChild(b);
+  setTimeout(() => {
+    b.style.transition = 'opacity .5s';
+    b.style.opacity = '0';
+    setTimeout(() => b.remove(), 500);
+  }, 2600);
+}
+
+// ═══════════════════════════════════════════════════
+//  LOG
+// ═══════════════════════════════════════════════════
+function addLog(text, cls='') {
+  const p = document.getElementById('log');
+  const d = document.createElement('div');
+  d.className = 'log ' + cls;
+  d.innerHTML = `<span class="t">${now()}</span>${text}`;
+  p.appendChild(d);
+  p.scrollTop = p.scrollHeight;
+  while(p.children.length > 60) p.removeChild(p.firstChild);
+}
+
+// Click any Pokemon to make it speak
+document.querySelectorAll('.poke').forEach(el => {
+  el.addEventListener('click', () => {
+    const id = el.id.replace('p-','');
+    activatePoke(id);
+  });
+});
+</script>
+</body>
+</html>
